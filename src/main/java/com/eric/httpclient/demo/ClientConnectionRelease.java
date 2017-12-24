@@ -1,14 +1,17 @@
 package com.eric.httpclient.demo;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.CharArrayBuffer;
+import org.apache.http.util.EntityUtils;
 
 /**
  * This example demonstrates the recommended way of using API to make sure the
@@ -16,39 +19,52 @@ import org.apache.http.impl.client.HttpClients;
  */
 public class ClientConnectionRelease {
 
-	public final static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 		CloseableHttpClient httpclient = HttpClients.createDefault();
-		try {
+		//使用EntityUtils.toString(entity, "UTF-8")方法自动解析		
+		/*try {
 			HttpGet httpGet = new HttpGet("http://www.baidu.com/");
-			System.out.println("Executing request " + httpGet.getRequestLine());
+			System.out.println("Executing request: " + httpGet.getRequestLine());
 			
 			CloseableHttpResponse response = httpclient.execute(httpGet);
 			try {
 				System.out.println("---------------------------------------------------------------");
-				System.out.println(response.getStatusLine());
-
-				// Get hold of the response entity
+				System.out.println("Response line: " + response.getStatusLine());
+				System.out.println("---------------------------------------------------------------");
 				HttpEntity entity = response.getEntity();
-
-				// If the response does not enclose an entity, there is no need to bother about connection release
-				if (entity != null) {
-					InputStream instream = entity.getContent();
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					int i = -1;
-					try {
-						while((i = instream.read()) != -1) {
-							System.out.println(i);
-							baos.write(i); 
-						}
-						System.out.println(baos.toString());
-						// do something useful with the response
-					} catch (IOException ex) {
-						// In case of an IOException the connection will be released back to the connection manager automatically
-						throw ex;
-					} finally {
-						// Closing the input stream will trigger connection release
-						instream.close();
-					}
+				System.out.println(EntityUtils.toString(entity, "UTF-8"));
+			} finally {
+				response.close();
+			}
+		} finally {
+			httpclient.close();
+		}*/
+		
+		//手动解析
+		try {
+			HttpGet httpGet = new HttpGet("http://www.baidu.com/");
+			System.out.println("Executing request: " + httpGet.getRequestLine());
+			CloseableHttpResponse response = httpclient.execute(httpGet);
+			try {
+				System.out.println("---------------------------------------------------------------");
+				System.out.println("Response line: " + response.getStatusLine());
+				System.out.println("---------------------------------------------------------------");
+				HttpEntity httpEntity = response.getEntity();
+				if(httpEntity != null) {
+					int capacity = (int) httpEntity.getContentLength();
+					if (capacity < 0) {
+			                capacity = 4096;
+			        }
+					Charset charset = Charset.forName("UTF-8");
+					final InputStream is = httpEntity.getContent();
+					final Reader reader = new InputStreamReader(is, charset);
+			        final CharArrayBuffer charArrayBuffer = new CharArrayBuffer(capacity);
+			        final char[] tempChar = new char[1024];
+			        int index;
+		            while((index = reader.read(tempChar)) != -1) {
+		            	charArrayBuffer.append(tempChar, 0, index);
+		            }
+		            System.out.println(charArrayBuffer.toString());
 				}
 			} finally {
 				response.close();
@@ -56,6 +72,7 @@ public class ClientConnectionRelease {
 		} finally {
 			httpclient.close();
 		}
+		
 	}
 
 }
