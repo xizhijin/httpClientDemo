@@ -60,9 +60,9 @@ public class ClientConnectionRelease {
 					final Reader reader = new InputStreamReader(is, charset);
 			        final CharArrayBuffer charArrayBuffer = new CharArrayBuffer(capacity);
 			        final char[] tempChar = new char[1024];
-			        int index;
-		            while((index = reader.read(tempChar)) != -1) {
-		            	charArrayBuffer.append(tempChar, 0, index);
+			        int len;
+		            while((len = reader.read(tempChar)) != -1) {
+		            	charArrayBuffer.append(tempChar, 0, len);
 		            }
 		            System.out.println(charArrayBuffer.toString());
 				}
