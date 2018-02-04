@@ -53,7 +53,7 @@ public class ClientConnectionRelease {
 				if(httpEntity != null) {
 					int capacity = (int) httpEntity.getContentLength();
 					if (capacity < 0) {
-			                capacity = 4096;
+			            capacity = 4096;
 			        }
 					Charset charset = Charset.forName("UTF-8");
 					final InputStream is = httpEntity.getContent();
